@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  user_database:
+    image: postgres:16.1-alpine3.19
+    container_name: user_database
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  data:
+    driver: local
