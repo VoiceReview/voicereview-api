@@ -1,16 +1,16 @@
-create table users (
-    user_id uuid generated always as identity primary key,
-    email text unique,
-    phone text unique,
-    password text not null,
-    verified boolean default false,
-    created_at timestamp default current_timestamp,
-    updated_at timestamp default current_timestamp,
-    check (email is not null or phone is not null)
+-- init.sql
+-- Create the "private" schema if it does not exist
+CREATE SCHEMA IF NOT EXISTS private;
+
+-- Switch to the "private" schema
+SET search_path TO private;
+
+-- Create the migrations table
+CREATE TABLE IF NOT EXISTS migrations (
+    name text PRIMARY KEY,
+    created_at TIMESTAMP DEFAULT current_timestamp,
+    checksum VARCHAR(64) -- sha256
 );
 
-alter table users enable row level security;
-
--- create policy "Allow logged-in users to see their own data"
--- on users 
--- for select 
+-- Switch back to the default schema if needed
+SET search_path TO public;
