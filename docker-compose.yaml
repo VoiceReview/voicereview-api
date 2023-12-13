@@ -17,6 +17,21 @@ services:
       timeout: 5s
       retries: 5
 
+  pg_admin:
+    image: dpage/pgadmin4:7.4
+    container_name: pg_admin
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - '${PGADMIN_LISTEN_PORT}:5050'
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    depends_on:
+      - user_database
+
 volumes:
   data:
+    driver: local
+  pgadmin:
     driver: local
