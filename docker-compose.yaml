@@ -8,6 +8,7 @@ services:
       - .env
     volumes:
       - data:/var/lib/postgresql/data
+      - ./user-db/src/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - '5432:5432'
     healthcheck:
