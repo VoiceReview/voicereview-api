@@ -30,6 +30,17 @@ services:
     depends_on:
       - user_database
 
+  user_service:
+    build:
+      context: ./user
+      dockerfile: ./Dockerfile.${NODE_ENV}
+    env_file:
+      - .env
+    depends_on:
+      - user_database
+    # ports:
+    #   - '4000:4000'
+
 volumes:
   data:
     driver: local

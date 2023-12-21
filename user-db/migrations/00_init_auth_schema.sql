@@ -17,6 +17,26 @@ create table if not exists users (
 );
 comment on table users is 'Auth: Stores user credentials';
 
+create table if not exists sessions (
+    session_id uuid primary key default uuid_generate_v4(),
+    user_id uuid references users(user_id) on delete cascade,
+    created_at timestamp default current_timestamp,
+    updated_at timestamp default current_timestamp,
+    revoked boolean default false
+);
+comment on table sessions is 'Auth: Stores session tokens';
+
+create table if not exists refresh_tokens (
+    token uuid primary key default uuid_generate_v4(),
+    user_id uuid references users(user_id) on delete cascade,
+    created_at timestamp default current_timestamp,
+    updated_at timestamp default current_timestamp,
+    revoked boolean default false
+);
+comment on table refresh_tokens is 'Auth: Stores refresh tokens';
+
+
+
 -- get the user id from the request cookie
 create or replace function auth.uid() returns uuid as $$
     select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid;
