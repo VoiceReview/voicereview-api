@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "dotenv-cli": "^7.3.0",
+    "pg-to-ts": "^4.1.1"
+  }
+}
