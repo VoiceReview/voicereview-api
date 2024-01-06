@@ -52,7 +52,6 @@ export namespace user {
         uuid?: string;
     }
     export interface CreateUserResponse {
-        sessionToken?: string;
         refreshToken?: string;
         accessToken?: string;
     }
