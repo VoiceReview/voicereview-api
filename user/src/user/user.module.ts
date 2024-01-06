@@ -3,6 +3,7 @@ import { UserController } from './user.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 import { UserService } from './user.service';
+import { DatabaseModule } from 'src/database/database.module';
 
 @Module({
   imports: [
@@ -15,7 +16,8 @@ import { UserService } from './user.service';
           protoPath: join(__dirname, 'user.proto'),
         }
       }
-    ])
+    ]),
+    DatabaseModule
   ],
   controllers: [UserController],
   providers: [UserService]
