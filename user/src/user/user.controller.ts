@@ -52,11 +52,11 @@ export class UserController {
             }
 
             const refresh_token = refresh_token_insert_res.rows[0];
-            const refresh_token_jwt = jwt.sign(refresh_token, process.env.REFRESH_TOKEN_SECRET);
-
+            const refresh_token_jwt = jwt.sign(refresh_token, process.env.USER_SERVICE_REFRESH_TOKEN_SECRET);
 
             const response: user.CreateUserResponse = {
                 refreshToken: refresh_token_jwt,
+                accessToken: "",
             }
 
             return response;

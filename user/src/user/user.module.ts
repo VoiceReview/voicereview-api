@@ -4,6 +4,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 import { UserService } from './user.service';
 import { DatabaseModule } from 'src/database/database.module';
+import { RefreshTokensModule } from 'src/refresh_tokens/refresh_tokens.module';
 
 @Module({
   imports: [
@@ -17,7 +18,8 @@ import { DatabaseModule } from 'src/database/database.module';
         }
       }
     ]),
-    DatabaseModule
+    DatabaseModule,
+    RefreshTokensModule
   ],
   controllers: [UserController],
   providers: [UserService]
