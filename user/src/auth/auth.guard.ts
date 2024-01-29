@@ -19,12 +19,14 @@ export class AuthGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
-    const accessToken = request.headers['authorization']?.split(' ')[1];
+    const metadata = context.getArgs()[1].internalRepr; // A map representing the metadata sent with the request
+    const accessTokenArray = metadata.get('access_token'); // Retrieve the array for the 'access_token' key
 
-    if (!accessToken) {
+    if (!accessTokenArray || accessTokenArray.length === 0) {
       throw new UnauthorizedException('No access token provided');
     }
+
+    const accessToken = accessTokenArray[0]
 
     return this.validateAccessToken(accessToken);
   }
@@ -36,7 +38,8 @@ export class AuthGuard implements CanActivate {
    */
   private async validateAccessToken(jwtAccessToken: string): Promise<boolean> {
     try {
-      const uuidAccessToken = jwt.verify(jwtAccessToken, process.env.USER_SERVICE_ACCESS_TOKEN_SECRET); 
+      const accessToken = jwt.verify(jwtAccessToken, process.env.USER_SERVICE_ACCESS_TOKEN_SECRET);
+      const uuidAccessToken = accessToken['token'];
       const tokenValid = await this.accessTokenService.validateAccessToken(uuidAccessToken);
       return tokenValid;
     } catch (err) {
