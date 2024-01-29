@@ -8,6 +8,7 @@ import { RefreshTokens, Users } from 'src/database/database.types';
 import { AccessTokenService } from 'src/access_token/access_token.service';
 import { RefreshTokensService } from 'src/refresh_tokens/refresh_tokens.service';
 import * as jwt from 'jsonwebtoken';
+import { RefreshRequest } from './dto/RefreshRequest.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -118,7 +119,7 @@ export class AuthController {
      * @param error the error to handle
      * @returns an object containing the error code and message
      */
-    private handleLoginError(error: Error) : { code: number, message: string } {
+    private handleLoginError(error: Error): { code: number, message: string } {
         switch (error.message) {
             case 'User not found':
             case 'Wrong password':
@@ -132,19 +133,62 @@ export class AuthController {
                     message: 'Internal server error',
                 };
         }
-    } 
-    
+    }
+
     /**
      * Method to handle register errors
      * @param error the error to handle
      * @returns an object containing the error code and message
      */
-    private handleRegisterError(error: Error) : { code: number, message: string } {
+    private handleRegisterError(error: Error): { code: number, message: string } {
         switch (error.message) {
             case 'Failed to create user':
                 return {
                     code: 500,
                     message: 'Internal server error',
+                };
+            default:
+                return {
+                    code: 500,
+                    message: 'Internal server error',
+                };
+        }
+    }
+
+    @GrpcMethod('AuthService', 'Refresh')
+    async refresh(data: RefreshRequest): Promise<auth.RefreshResponse> {
+        const { refreshToken } = data;
+
+        try {
+            const refresh_token_decoded = jwt.verify(refreshToken, process.env.USER_SERVICE_REFRESH_TOKEN_SECRET);
+            const uuid_refresh_token = refresh_token_decoded['token'];
+
+            const refresh_token_valid = await this.refreshTokensService.validateRefreshToken(uuid_refresh_token);
+            if (!refresh_token_valid) {
+                throw new Error('Invalid or expired refresh token');
+            }
+
+            const user_id = refresh_token_decoded['user_id'];
+            const access_token = await this.createAccessToken(user_id);
+            return {
+                accessToken: access_token,
+            };
+        } catch (error) {
+            throw this.handleRefreshError(error);
+        }
+    }
+
+    /**
+     * Method to handle refresh errors
+     * @param error the error to handle
+     * @returns an object containing the error code and message
+     */
+    private handleRefreshError(error: Error): { code: number, message: string } {
+        switch (error.message) {
+            case 'Invalid or expired refresh token':
+                return {
+                    code: 401,
+                    message: 'Invalid or expired refresh token',
                 };
             default:
                 return {
