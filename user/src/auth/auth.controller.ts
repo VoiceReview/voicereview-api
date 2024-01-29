@@ -38,7 +38,7 @@ export class AuthController {
         }
     }
 
-    @GrpcMethod('UserService', 'Register')
+    @GrpcMethod('AuthService', 'Register')
     async register(data: RegisterRequest): Promise<auth.RegisterResponse> {
         const { email, phone, password } = data;
         try {
