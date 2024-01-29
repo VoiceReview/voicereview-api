@@ -1,10 +1,9 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { user } from '../interfaces/user.interface';
 
 /**
  * @description DTO for creating a user
  */
-export class CreateUserRequest {
+export class RegisterRequest {
     @IsOptional()
     @IsEmail()
     email?: string;
@@ -16,6 +15,4 @@ export class CreateUserRequest {
     @IsNotEmpty()
     @IsString()
     password: string;
-
-    role: user.UserRole;
 }
