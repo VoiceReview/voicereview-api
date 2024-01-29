@@ -9,6 +9,7 @@ import * as jwt from 'jsonwebtoken';
 import { AccessTokenService } from 'src/access_token/access_token.service';
 import { CreateUserRequest } from './dto/createUserRequest.dto';
 import { RefreshTokens, Users } from 'src/database/database.types';
+import { Auth } from 'src/auth/auth.decorator';
 
 @Controller('user')
 export class UserController {
@@ -17,9 +18,9 @@ export class UserController {
         private readonly accessTokensService: AccessTokenService,
         private readonly refreshTokensService: RefreshTokensService
     ) { }
-
-
+    
     @GrpcMethod('UserService', 'FindOne')
+    @Auth()
     findOne(data: user.UserByUuid, metadata: Metadata, call: ServerUnaryCall<any, any>): user.User {
         return {
             uuid: 'uuid',
@@ -34,7 +35,7 @@ export class UserController {
     }
 
     @GrpcMethod('UserService', 'CreateUser')
-    async createUser(data: CreateUserRequest, metadata: Metadata, call: ServerUnaryCall<any, any>): Promise<user.CreateUserResponse> {
+    async createUser(data: CreateUserRequest): Promise<user.CreateUserResponse> {
         const { email, phone, password, role } = data;
         try {
             const user_insert_res = await this.userService.createOne({ email, phone, password, role });
