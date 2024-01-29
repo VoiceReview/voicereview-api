@@ -9,8 +9,13 @@ export class RefreshTokensService {
     constructor(
         private readonly databaseService: DatabaseService
     ) { }
-
-    createOne({ user_id }: { user_id: string }) : Promise<QueryResult<RefreshTokens>> {
+    
+    /**
+     * Method to create a new refresh token
+     * @param user_id the uuid value of the user
+     * @returns a promise that resolve to the row of the newly created refresh token
+     */
+    createOne(user_id) : Promise<QueryResult<RefreshTokens>> {
         const created_at = new Date();
         const expires_at = new Date(created_at.getTime() + 30 * 24 * 60 * 60 * 1000);
         const updated_at = created_at;

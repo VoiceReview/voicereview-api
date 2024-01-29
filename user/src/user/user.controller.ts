@@ -6,11 +6,15 @@ import { UserService } from './user.service';
 import { Status } from '@grpc/grpc-js/build/src/constants';
 import { RefreshTokensService } from 'src/refresh_tokens/refresh_tokens.service';
 import * as jwt from 'jsonwebtoken';
+import { AccessTokenService } from 'src/access_token/access_token.service';
+import { CreateUserRequest } from './dto/createUserRequest.dto';
+import { RefreshTokens, Users } from 'src/database/database.types';
 
 @Controller('user')
 export class UserController {
     constructor(
         private readonly userService: UserService,
+        private readonly accessTokensService: AccessTokenService,
         private readonly refreshTokensService: RefreshTokensService
     ) { }
 
@@ -30,11 +34,7 @@ export class UserController {
     }
 
     @GrpcMethod('UserService', 'CreateUser')
-    async createUser(data: user.CreateUserRequest, metadata: Metadata, call: ServerUnaryCall<any, any>): Promise<user.CreateUserResponse> {
-        if ((!data.email && !data.phone) || !data.password) {
-            call.emit('error', { code: 400, message: 'Missing required fields' });
-            return;
-        }
+    async createUser(data: CreateUserRequest, metadata: Metadata, call: ServerUnaryCall<any, any>): Promise<user.CreateUserResponse> {
         const { email, phone, password, role } = data;
         try {
             const user_insert_res = await this.userService.createOne({ email, phone, password, role });
@@ -43,25 +43,61 @@ export class UserController {
                 throw new Error('Failed to create user');
             }
 
-            const user = user_insert_res.rows[0];
+            const createdUser = user_insert_res.rows[0] as Users;
 
-            const refresh_token_insert_res = await this.refreshTokensService.createOne({ user_id: user.user_id });
-            
-            if (refresh_token_insert_res.rowCount === 0) {
-                throw new Error('Failed to create refresh token');
-            }
+            const access_token = await this.createAccessToken(createdUser.user_id);
+            const refresh_token = await this.createRefreshToken(createdUser.user_id);
 
-            const refresh_token = refresh_token_insert_res.rows[0];
-            const refresh_token_jwt = jwt.sign(refresh_token, process.env.USER_SERVICE_REFRESH_TOKEN_SECRET);
-
-            const response: user.CreateUserResponse = {
-                refreshToken: refresh_token_jwt,
-                accessToken: "",
-            }
-
-            return response;
+            return {
+                accessToken: access_token,
+                refreshToken: refresh_token,
+            };
         } catch (error) {
-            throw { code: Status.INTERNAL, message: error.message };
+            throw this.handleCreateUserError(error);
         }
+    }
+
+    /**
+     * Method to create a new access token
+     * @param user_id the uuid value of the user 
+     * @returns a promise that resolve to a new jwt access token
+     */
+    private async createAccessToken(user_id: string): Promise<string> {
+        const access_token_insert_res = await this.accessTokensService.createOne(user_id);
+
+        if (access_token_insert_res.rowCount === 0) {
+            throw new Error('Failed to create access token');
+        }
+
+        const access_token = access_token_insert_res.rows[0];
+        const access_token_jwt = jwt.sign(access_token, process.env.USER_SERVICE_ACCESS_TOKEN_SECRET);
+
+        return access_token_jwt;
+    }
+
+    /**
+     * Method to create a new refresh token
+     * @param user_id the uuid value of the user 
+     * @returns a promise that resolve to a new jwt refresh token
+     */
+    private async createRefreshToken(user_id: string): Promise<string> {
+        const refresh_token_insert_res = await this.refreshTokensService.createOne(user_id);
+
+        if (refresh_token_insert_res.rowCount === 0) {
+            throw new Error('Failed to create refresh token');
+        }
+
+        const refresh_token = refresh_token_insert_res.rows[0] as RefreshTokens;
+        const refresh_token_jwt = jwt.sign(refresh_token, process.env.USER_SERVICE_REFRESH_TOKEN_SECRET);
+
+        return refresh_token_jwt;
+    }
+
+    private handleCreateUserError(error: Error): { code: Status, message: string } {
+        console.log(error);
+        if (error.message.includes('duplicate key value violates unique constraint')) {
+            return { code: Status.ALREADY_EXISTS, message: 'User already exists' };
+        }
+        return { code: Status.INTERNAL, message: 'Failed to create user' };
     }
 }
