@@ -3,7 +3,7 @@ import { Pool, QueryResult } from 'pg';
 
 @Injectable()
 export class DatabaseService {
-    private m_pool: Pool;
+    private m_pool: Pool; // the database connection pool
 
     constructor() {
         this.m_pool = new Pool({
@@ -15,6 +15,13 @@ export class DatabaseService {
         });
     }
 
+    /**
+     * Method to execute a parameterized query
+     * @param text the query string with $1, $2, etc. placeholders
+     * @param params the values to substitute the placeholders with 
+     * @returns a promise that resolves to a QueryResult 
+     * @note cast the result to the appropriate type
+     */
     async query(text: string, params: any[]): Promise<QueryResult> {
         const start = Date.now();
         const res = await this.m_pool.query(text, params);
