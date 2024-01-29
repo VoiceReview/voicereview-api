@@ -26,4 +26,17 @@ export class RefreshTokensService {
             [user_id, created_at, updated_at, expires_at, revoked]
         )
     }
+
+    /**
+     * Method to validate a refresh token
+     * @param token the refresh token  uuid to validate
+     * @returns a promise that resolve to a boolean indicating whether the refresh token is valid
+     */
+    async validateRefreshToken(token: string): Promise<boolean> {
+        const res = await this.databaseService.query(
+            "SELECT * FROM refresh_tokens WHERE token = $1",
+            [token]
+        );
+        return res.rowCount > 0;
+    }
 }
