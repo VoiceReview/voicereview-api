@@ -1,5 +1,5 @@
 {
-	"devDependencies": {
-		"@nestjs/cli": "^10.2.1"
-	}
+  "devDependencies": {
+    "@nestjs/cli": "^10.2.1"
+  }
 }
