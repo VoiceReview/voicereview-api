@@ -30,19 +30,28 @@ services:
     depends_on:
       - user_database
 
-  # user_service:
-  #   build:
-  #     context: ./user
-  #     dockerfile: ./Dockerfile.${NODE_ENV}
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     - user_database
-  #   # ports:
-  #   #   - '4000:4000'
+  reviews_minio:
+    image: quay.io/minio/minio:RELEASE.2024-02-09T21-25-16Z
+    command: server --console-address ":9001" /data_reviews
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    hostname: reviews_minio
+    volumes:
+      - data_reviews1:/data1
+      - data_reviews2:/data2
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   data:
+    driver: local
+  data_reviews1:
+    driver: local
+  data_reviews2:
     driver: local
   pgadmin:
     driver: local
