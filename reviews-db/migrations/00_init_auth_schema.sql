@@ -1,4 +1,3 @@
-BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -10,8 +9,11 @@ create table if not exists reviews (
     audio_link text not null,
     transcription text,
     like_count int default 0,
-
     /* To know if it's a review of review */
-    parent_id uuid default null,
+    parent_id uuid default null
 );
+
 comment on table reviews is 'Reviews: Stores reviews details';
+
+
+
